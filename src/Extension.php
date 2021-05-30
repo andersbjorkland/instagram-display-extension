@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AcmeCorp\ReferenceExtension;
+namespace AndersBjorkland\InstagramDisplayExtension;
 
 use Bolt\Extension\BaseExtension;
 
@@ -27,7 +27,7 @@ class Extension extends BaseExtension
     {
         $this->addWidget(new ReferenceWidget());
 
-        $this->addTwigNamespace('reference-extension');
+        $this->addTwigNamespace('instagram-display-extension');
 
         $this->addListener('kernel.response', [new EventListener(), 'handleEvent']);
     }
@@ -41,5 +41,11 @@ class Extension extends BaseExtension
      */
     public function initializeCli(): void
     {
+    }
+
+    public function install(): void
+    {
+       passthru("php bin/console doctrine:query:sql \"CREATE TABLE bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL)\"", $result);
+        //passthru('php bin/console doctrine --help');
     }
 }

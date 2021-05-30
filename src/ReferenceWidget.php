@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AcmeCorp\ReferenceExtension;
+namespace AndersBjorkland\InstagramDisplayExtension;
 
 use Bolt\Widget\BaseWidget;
 use Bolt\Widget\CacheAwareInterface;

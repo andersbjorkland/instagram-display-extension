@@ -1,1 +1,19 @@
 # An example of a services.yaml file in an extension
+parameters:
+  instagram-app-id: '%env(resolve:INSTAGRAM_APP_ID)%'
+  instagram-app-secret: '%env(resolve:INSTAGRAM_APP_SECRET)%'
+  instagram-user-token: '%env(resolve:INSTAGRAM_USER_TOKEN)%'
+
+### Map entities
+doctrine:
+  orm:
+    auto_generate_proxy_classes: '%kernel.debug%'
+    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+    auto_mapping: true
+    mappings:
+      InstagramToken:
+        is_bundle: false
+        type: annotation
+        dir: '%kernel.project_dir%/vendor/andersbjorkland/instagram-display-extension/src/Entity'
+        prefix: 'AndersBjorkland\InstagramDisplayExtension'
+        alias: InstagramToken

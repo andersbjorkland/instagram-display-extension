@@ -1,4 +1,4 @@
 
-reference_extension:
-  resource: '../../vendor/acmecorp/reference-extension/src/Controller/'
+instagram_display_extension:
+  resource: '../../vendor/andersbjorkland/instagram-display-extension/src/Controller/'
   type: annotation
