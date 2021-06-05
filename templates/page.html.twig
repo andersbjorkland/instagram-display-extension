@@ -21,9 +21,17 @@
     <h2>There something going on!</h2>
 
     {% for mediaElement in media %}
-        {% if mediaElement.media_type is same as "IMAGE" %}
-            <p>MEDIA!!!</p>
-            <img src="{{ mediaElement.media_url }}" alt="{{ mediaElement.caption }}">
+        {% if mediaElement.mediaType is same as "IMAGE" %}
+            {% set mediaPath = mediaElement.filepath|replace({'files': ''}) %}
+            <img srcset="{{ mediaPath|thumbnail(width=320) }} 320w,
+                        {{ mediaPath|thumbnail(width=480) }} 480w,
+                        {{ mediaPath|thumbnail(width=800) }} 800w"
+                 sizes="(max-width: 400px) 320px,
+                        (max-width: 600px) 480px,
+                        800px"
+                 src="{{ asset(mediaElement.filepath) }}"
+                 alt="{{ mediaElement.caption }}"
+            >
         {% endif %}
     {% endfor %}
 {% endif %}

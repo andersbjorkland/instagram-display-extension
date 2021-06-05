@@ -109,7 +109,7 @@ class Controller extends ExtensionController
         if (count($tokens) > 0) {
             $instagramToken = $tokens[0];
             $media = false;
-            $mediaPaths = [];
+            $mediaEntities = [];
 
             // Fetch instagram media
             try {
@@ -159,7 +159,7 @@ class Controller extends ExtensionController
                         }
 
                         if ($instagramMedia !== null) {
-                            array_push($mediaPaths, $instagramMedia->getFilepath());
+                            array_push($mediaEntities, $instagramMedia);
                             dump([
                                 "Media" => $instagramMedia,
                                 "Path" => $instagramMedia->getFilepath(),
@@ -179,7 +179,7 @@ class Controller extends ExtensionController
 
             $context = [
                 "title" => "Instagram Media Display",
-                "media" => $media,
+                "media" => $mediaEntities,
                 "message" => "Token is fetched.",
                 "response" => $response
             ];
