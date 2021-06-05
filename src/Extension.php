@@ -13,7 +13,7 @@ class Extension extends BaseExtension
      */
     public function getName(): string
     {
-        return 'AcmeCorp ReferenceExtension';
+        return 'Instagram Display Extension';
     }
 
     /**
@@ -25,11 +25,12 @@ class Extension extends BaseExtension
      */
     public function initialize($cli = false): void
     {
-        $this->addWidget(new ReferenceWidget());
+        $this->addWidget(new ReferenceWidget($this->getObjectManager()));
 
         $this->addTwigNamespace('instagram-display-extension');
 
         $this->addListener('kernel.response', [new EventListener(), 'handleEvent']);
+
     }
 
     /**
@@ -45,7 +46,6 @@ class Extension extends BaseExtension
 
     public function install(): void
     {
-       passthru("php bin/console doctrine:query:sql \"CREATE TABLE bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL)\"", $result);
-        //passthru('php bin/console doctrine --help');
+       passthru("php bin/console doctrine:query:sql \"CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)\"", $result);
     }
 }

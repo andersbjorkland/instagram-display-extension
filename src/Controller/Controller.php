@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace AndersBjorkland\InstagramDisplayExtension\Controller;
 
 use AndersBjorkland\InstagramDisplayExtension\Entity\InstagramToken;
+use AndersBjorkland\InstagramDisplayExtension\Extension;
+use AndersBjorkland\InstagramDisplayExtension\Service\FileUploader;
 use Bolt\Extension\ExtensionController;
+use Bolt\Extension\ExtensionRegistry;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +34,7 @@ class Controller extends ExtensionController
      */
     public function authorizeApp(Request $request, HttpClientInterface $client, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $appId = $this->getParameter('instagram-app-id');
 
         $params = $request->query->all();
@@ -58,9 +64,6 @@ class Controller extends ExtensionController
         }
 
 
-
-
-
         $longlastingTokenResponse = false;
         $longlastingToken = false;
         $tokenExpiration = false;
@@ -76,12 +79,14 @@ class Controller extends ExtensionController
                     'trace' => $e->getTrace(),
                     'message' => 'Something went wrong when requesting a token.'
                 ];
+                $this->addFlash('notice', 'Something went wrong when requesting a token.');
             } catch (ClientExceptionInterface | DecodingExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
                 $longlastingTokenResponse = [
                     'error' => true,
                     'trace' => $e->getTrace(),
                     'message' => 'Something went wrong when converting response to array.'
                 ];
+                $this->addFlash('notice', 'Something went wrong when converting response to array.');
             }
         }
 
@@ -98,21 +103,174 @@ class Controller extends ExtensionController
             $instagramToken->setToken($longlastingToken);
             $instagramToken->setExpiresIn($tokenExpiration);
 
+            if ($userId !== false) {
+                $instagramToken->setInstagramUserId($userId);
+            }
+
             $entityManager->persist($instagramToken);
             $entityManager->flush();
+
+            $this->addFlash('notice', 'Successfully authorized your website to use your Instagram account.');
         }
 
 
         $context = [
             'title' => 'Instagram Display Extension',
-            'app_id' => $appId,
-            'token' => $token,
-            'tokenCall' => $tokenCall,
-            'longCall' => $longlastingTokenResponse,
-            'tokenEntity' => $instagramToken
         ];
 
+        return $this->redirectToRoute('bolt_dashboard');
+    }
+
+    /**
+     * @Route("/extensions/instagram-display/media", name="instagram_media")
+     */
+    public function getMedia(HttpClientInterface $client, EntityManagerInterface $entityManager, ExtensionRegistry $registry): Response
+    {
+        $repository = $this->getDoctrine()->getRepository(InstagramToken::class);
+        $tokens = $repository->findAll();
+        $context = [];
+
+
+
+        if (count($tokens) > 0) {
+            $instagramToken = $tokens[0];
+            $media = false;
+
+            // Fetch instagram media
+            try {
+                $response = $this->getMediaPosts($instagramToken, $client)->toArray();
+
+                $configs = $registry->getExtension(Extension::class)->getConfig();
+
+                if (array_key_exists("data", $response)) {
+                    $media = [];
+                    $responseData = $response["data"];
+                    foreach ($responseData as $dataElement) {
+                        array_push($media, $this->getMediaPost($dataElement["id"], $instagramToken, $client)->toArray());
+                    }
+                }
+
+
+                $allowVideo = $configs["allow_video"];
+                $fileUploader = new FileUploader($registry);
+
+                if (count($media) > 0) {
+                    foreach ($media as $mediaElement) {
+                        $filePath = false;
+                        if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
+                            $filePath = $fileUploader->upload($mediaElement);
+                        }
+
+                        if ($filePath !== false) {
+                            dump(["Media" => $mediaElement, "Path" => $filePath]);
+                        }
+                    }
+                }
+
+            } catch (TransportExceptionInterface | Exception $e) {
+                $response = [
+                    "message" => "Something went wrong fetching media posts",
+                    "trace" => $e->getTrace()
+                ];
+            }
+
+            $context = [
+                "title" => "Instagram Media Display",
+                "media" => $media,
+                "message" => "Token is fetched.",
+                "response" => $response
+            ];
+        } else {
+            $context = [
+                "title" => "Instagram Media Display",
+                "media" => false,
+                "message" => "No token was stored. Authorize your app."
+            ];
+        }
+
         return $this->render('@instagram-display-extension/page.html.twig', $context);
+    }
+
+    /**
+     * @Route("/extensions/instagram-display/refresh", name="instagram_refresh")
+     */
+    public function refreshToken(HttpClientInterface $client, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $instagramTokens = $entityManager->getRepository(InstagramToken::class)->findAll();
+        $instagramToken = null;
+        if (count($instagramTokens) > 0) {
+            $instagramToken = $instagramTokens[0];
+            try {
+                $response = $this->refreshLonglastingToken($instagramToken->getToken(), $client)->toArray();
+                if (key_exists("access_token", $response) && key_exists("expires_in", $response)) {
+                    $instagramToken->setToken($response["access_token"]);
+                    $instagramToken->setExpiresIn($response["expires_in"]);
+
+                    $entityManager->persist($instagramToken);
+                    $entityManager->flush();
+
+                    $currentDate = new DateTime();
+                    $interval = $currentDate->diff($instagramToken->getExpiresIn());
+
+                    $response = [
+                        "successful" => true,
+                        "expiration_date" => $instagramToken->getExpiresIn(),
+                        "days_left" => $interval->format('%r%a')
+                    ];
+                }
+            } catch (ClientExceptionInterface
+            | DecodingExceptionInterface | RedirectionExceptionInterface
+            | ServerExceptionInterface | TransportExceptionInterface $e) {
+                $response = [
+                    "exception" => $e->getMessage(),
+                    "status" => $e->getCode()
+                ];
+            }
+        } else {
+            $response = [
+                "exception" => "No token is currently stored"
+            ];
+        }
+
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route("/extensions/instagram-display/deauthorize", name="instagram_deauthorize")
+     */
+    public function deauthorize(HttpClientInterface $client, EntityManagerInterface $entityManager)
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $instagramTokens = $entityManager->getRepository(InstagramToken::class)->findAll();
+        $instagramToken = null;
+        if (count($instagramTokens) > 0) {
+            $instagramToken = $instagramTokens[0];
+            try {
+                $entityManager->remove($instagramToken);
+                $entityManager->flush();
+
+                $response = [
+                    "successful" => true,
+                ];
+
+                $this->addFlash('notice', 'Instagram connection from this website has been removed.');
+
+            } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+                $response = [
+                    "exception" => $e->getMessage(),
+                    "status" => $e->getCode()
+                ];
+            }
+        } else {
+            $response = [
+                "exception" => "No token is currently stored"
+            ];
+        }
+
+        return new JsonResponse($response);
     }
 
     protected function authorizeUser(): RedirectResponse
@@ -193,12 +351,25 @@ class Controller extends ExtensionController
     /**
      * @throws TransportExceptionInterface
      */
-    protected function getEmbeddedPost(HttpClientInterface $client): ResponseInterface
+    protected function getMediaPosts(InstagramToken $instagramToken, HttpClientInterface $client): ResponseInterface
     {
-        $token = $this->getParameter('instagram-user-token');
+        $instagramUserId = $instagramToken->getInstagramUserId();
+        $token = $instagramToken->getToken();
+        $url = "https://graph.instagram.com/$instagramUserId"
+            ."/media"
+            ."?access_token=$token";
 
-        $url = "https://graph.facebook.com/me"
-            ."?fields=media"
+        return $client->request('GET', $url);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     */
+    protected function getMediaPost(string $mediaId, InstagramToken $instagramToken, HttpClientInterface $client): ResponseInterface
+    {
+        $token = $instagramToken->getToken();
+        $url = "https://graph.instagram.com/$mediaId"
+            ."?fields=media_type,media_url,caption,timestamp,username"
             ."&access_token=$token";
 
         return $client->request('GET', $url);

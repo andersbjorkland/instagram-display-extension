@@ -1,7 +1,7 @@
 {
     "name": "andersbjorkland/instagram-display-extension",
-    "description": "📦 This Bolt extension can be used as a starting point to base your own extensions on.",
-    "version": "0.0.6",
+    "description": "📸 Instagram Display Extension connects your Instagram account photos to Bolt CMS.",
+    "version": "0.0.10",
     "type": "bolt-extension",
     "license": "MIT",
     "authors": [

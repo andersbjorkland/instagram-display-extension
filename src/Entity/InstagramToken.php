@@ -32,6 +32,11 @@ class InstagramToken
      */
     private $expiresIn;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $instagramUserId;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -64,5 +69,21 @@ class InstagramToken
         $this->expiresIn = $date;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getInstagramUserId()
+    {
+        return $this->instagramUserId;
+    }
+
+    /**
+     * @param mixed $instagramUserId
+     */
+    public function setInstagramUserId($instagramUserId): void
+    {
+        $this->instagramUserId = $instagramUserId;
     }
 }

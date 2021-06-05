@@ -17,5 +17,16 @@
 
 {{ dump() }}
 
+{% if media is defined and media is not false %}
+    <h2>There something going on!</h2>
+
+    {% for mediaElement in media %}
+        {% if mediaElement.media_type is same as "IMAGE" %}
+            <p>MEDIA!!!</p>
+            <img src="{{ mediaElement.media_url }}" alt="{{ mediaElement.caption }}">
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
 </body>
 </html>
