@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AndersBjorkland\InstagramDisplayExtension\Controller;
 
+use AndersBjorkland\InstagramDisplayExtension\Entity\InstagramMedia;
 use AndersBjorkland\InstagramDisplayExtension\Entity\InstagramToken;
 use AndersBjorkland\InstagramDisplayExtension\Extension;
 use AndersBjorkland\InstagramDisplayExtension\Service\FileUploader;
@@ -35,7 +36,6 @@ class Controller extends ExtensionController
     public function authorizeApp(Request $request, HttpClientInterface $client, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        $appId = $this->getParameter('instagram-app-id');
 
         $params = $request->query->all();
 
@@ -43,7 +43,6 @@ class Controller extends ExtensionController
             return $this->authorizeUser();
         }
 
-        $tokenCall = "";
         $userId = false;
         $token = false;
 
@@ -54,17 +53,11 @@ class Controller extends ExtensionController
                 $tokenCall = $this->getToken($code, $client)->toArray();
                 $userId = $tokenCall["user_id"];
                 $token = $tokenCall["access_token"];
-            } catch (TransportExceptionInterface $e) {
-                $tokenCall = ["exception" => $e->getTrace()];
-            } catch (ClientExceptionInterface | ServerExceptionInterface | RedirectionExceptionInterface | DecodingExceptionInterface $e) {
-                $tokenCall = ["exception" => $e->getTrace(), "explanation" => "Something probably went wrong converting the response to an array."];
-            } catch (Exception $e) {
-                $tokenCall = ["exception" => $e->getTrace(), "explanation" => "Something is probably off with the response from the api. We may need to update it."];
+            } catch (TransportExceptionInterface | ClientExceptionInterface | ServerExceptionInterface | RedirectionExceptionInterface | DecodingExceptionInterface | Exception $e) {
             }
         }
 
 
-        $longlastingTokenResponse = false;
         $longlastingToken = false;
         $tokenExpiration = false;
 
@@ -74,23 +67,12 @@ class Controller extends ExtensionController
                 $longlastingToken = $longlastingTokenResponse['access_token'];
                 $tokenExpiration = $longlastingTokenResponse['expires_in'];
             } catch (TransportExceptionInterface $e) {
-                $longlastingTokenResponse = [
-                    'error' => true,
-                    'trace' => $e->getTrace(),
-                    'message' => 'Something went wrong when requesting a token.'
-                ];
                 $this->addFlash('notice', 'Something went wrong when requesting a token.');
             } catch (ClientExceptionInterface | DecodingExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
-                $longlastingTokenResponse = [
-                    'error' => true,
-                    'trace' => $e->getTrace(),
-                    'message' => 'Something went wrong when converting response to array.'
-                ];
                 $this->addFlash('notice', 'Something went wrong when converting response to array.');
             }
         }
 
-        $instagramToken = false;
         if ($longlastingToken !== false && $tokenExpiration !== false) {
             $instagramToken = new InstagramToken();
             $repository = $this->getDoctrine()->getRepository(InstagramToken::class);
@@ -113,11 +95,6 @@ class Controller extends ExtensionController
             $this->addFlash('notice', 'Successfully authorized your website to use your Instagram account.');
         }
 
-
-        $context = [
-            'title' => 'Instagram Display Extension',
-        ];
-
         return $this->redirectToRoute('bolt_dashboard');
     }
 
@@ -128,13 +105,11 @@ class Controller extends ExtensionController
     {
         $repository = $this->getDoctrine()->getRepository(InstagramToken::class);
         $tokens = $repository->findAll();
-        $context = [];
-
-
 
         if (count($tokens) > 0) {
             $instagramToken = $tokens[0];
             $media = false;
+            $mediaPaths = [];
 
             // Fetch instagram media
             try {
@@ -154,17 +129,45 @@ class Controller extends ExtensionController
                 $allowVideo = $configs["allow_video"];
                 $fileUploader = new FileUploader($registry);
 
+
+                // Store media
                 if (count($media) > 0) {
+                    $hasDatabaseTransaction = false;
                     foreach ($media as $mediaElement) {
-                        $filePath = false;
-                        if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
-                            $filePath = $fileUploader->upload($mediaElement);
+
+                        // Check if $media has already been stored.
+                        $instagramMedia = $entityManager->getRepository(InstagramMedia::class)
+                            ->findOneBy(["instagramId" => $mediaElement["id"]]);
+
+                        if (
+                            $instagramMedia === null
+                            || ($instagramMedia !== null && !file_exists($instagramMedia->getFilepath()))
+                        ) {
+                            if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
+                                $filePath = $fileUploader->upload($mediaElement);
+
+                                if ($filePath !== false) {
+                                    $instagramMedia ?? InstagramMedia::createFromArray($mediaElement);
+                                    $instagramMedia->setFilepath($filePath);
+
+                                    $entityManager->persist($instagramMedia);
+                                    if (!$hasDatabaseTransaction) {
+                                        $hasDatabaseTransaction = true;
+                                    }
+                                }
+                            }
                         }
 
-                        if ($filePath !== false) {
-                            dump(["Media" => $mediaElement, "Path" => $filePath]);
+                        if ($instagramMedia !== null) {
+                            array_push($mediaPaths, $instagramMedia->getFilepath());
+                            dump([
+                                "Media" => $instagramMedia,
+                                "Path" => $instagramMedia->getFilepath(),
+                                "Exists" => file_exists($instagramMedia->getFilepath())
+                            ]);
                         }
                     }
+                    $entityManager->flush();
                 }
 
             } catch (TransportExceptionInterface | Exception $e) {
@@ -199,7 +202,6 @@ class Controller extends ExtensionController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $instagramTokens = $entityManager->getRepository(InstagramToken::class)->findAll();
-        $instagramToken = null;
         if (count($instagramTokens) > 0) {
             $instagramToken = $instagramTokens[0];
             try {
@@ -240,12 +242,11 @@ class Controller extends ExtensionController
     /**
      * @Route("/extensions/instagram-display/deauthorize", name="instagram_deauthorize")
      */
-    public function deauthorize(HttpClientInterface $client, EntityManagerInterface $entityManager)
+    public function deauthorize(EntityManagerInterface $entityManager)
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $instagramTokens = $entityManager->getRepository(InstagramToken::class)->findAll();
-        $instagramToken = null;
         if (count($instagramTokens) > 0) {
             $instagramToken = $instagramTokens[0];
             try {
