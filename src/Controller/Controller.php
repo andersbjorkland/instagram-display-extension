@@ -281,6 +281,8 @@ class Controller extends ExtensionController
             $configs = $this->registry->getExtension(Extension::class)->getConfig();
             $thumbnailWidth = $configs->get('async_thumbnail_width');
 
+            $parsedResponse["video_width"] = $configs->get('async_video_width');
+
             foreach ($mediaItems as $mediaEntity) {
                 if ($mediaEntity instanceof InstagramMedia) {
                     $mediaContent = [

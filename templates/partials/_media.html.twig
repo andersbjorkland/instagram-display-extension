@@ -1,29 +1,85 @@
-<h2>THIS IS INSTAGRAM YEAH!!!</h2>
-
-<div id="instagram-media-wrapper">
+{% block stylesheets %}
     <style>
-        .hidden {
+
+        #instagram-media-wrapper .hidden {
             display: none;
         }
+
+        #instagram-media-container img, #instagram-media-container video {
+            max-width: 100%;
+        }
+
+        #instagram-media-container {
+            width: fit-content;
+            margin: auto;
+
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+
+            justify-content: center;
+            align-items: center;
+        }
+
+        .instagram-paging-controls {
+            position: relative;
+            width: fit-content;
+            margin: 0.5em auto;
+            display: grid;
+            grid-template-columns: 6.5em 6.5em;
+            gap: 0.5rem;
+        }
+
+        #instagram-media-paging-previous {
+            grid-column: 1;
+            margin-left: auto;
+        }
+        #instagram-media-paging-controls .button.loading::before {
+            position: absolute;
+            top: 0;
+            left: 0%;
+            width: 5%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            content: "";
+            animation: button-loading 2s infinite;
+        }
+
+        #instagram-media-paging-next {
+            grid-column: 2;
+            margin-right: auto;
+        }
+
+        .instagram-paging-controls .button {
+            width: 100%;
+        }
+
+        @keyframes button-loading {
+            50% {
+                left: 96%;
+            }
+        }
+
     </style>
+{% endblock %}
+
+<div id="instagram-media-wrapper">
 
     <div id="instagram-media-container">
 
     </div>
-    <div id="instagram-media-paging-controls">
-        <button id="instagram-media-paging-previous" class="button" data-previous="" onclick="handlePreviousButton()">Previous</button>
-        <button id="instagram-media-paging-next" class="button" data-next="" onclick="handleNextButton()">Next</button>
+    <div id="instagram-media-paging-controls" class="instagram-paging-controls">
+        <button id="instagram-media-paging-previous" class="button hidden" data-previous="" onclick="handlePreviousButton()">Previous</button>
+        <button id="instagram-media-paging-next" class="button hidden" data-next="" onclick="handleNextButton()">Next</button>
     </div>
 </div>
 
 <script>
-    console.log("Hello from Instagram Display Extension!");
-
     const container = document.getElementById('instagram-media-container');
     const previousControl = document.getElementById('instagram-media-paging-previous');
     const nextControl = document.getElementById('instagram-media-paging-next');
 
-    const getVideoElement = (video) => {
+    const getVideoElement = (video, width = -1) => {
         let source;
 
         if (video.filepath.length > 0) {
@@ -35,6 +91,10 @@
         const videoElement = document.createElement("video");
         videoElement.setAttribute("src", source);
         videoElement.setAttribute("controls", "controls");
+
+        if (width > 0) {
+            videoElement.setAttribute("width", "" + width);
+        }
 
         return videoElement;
     }
@@ -56,6 +116,14 @@
     }
 
     const createElementsFromData = (data) => {
+        let videoWidth;
+
+        if ("video_width" in data) {
+            videoWidth = data["video_width"];
+        } else {
+            videoWidth = -1;
+        }
+
         if ("media" in data) {
             if (Array.isArray(data.media)) {
                 data.media.forEach(item => {
@@ -63,7 +131,7 @@
                         let elementToAppend = null;
                         switch (item["media_type"]) {
                             case "VIDEO":
-                                elementToAppend = getVideoElement(item);
+                                elementToAppend = getVideoElement(item, videoWidth);
                                 break;
 
                             case "IMAGE":
@@ -71,7 +139,6 @@
                                 break;
 
                             case "CAROUSEL_ALBUM":
-                                console.log("PHOTO ALBUM");
                                 elementToAppend = getImageElement(item);
                                 break;
 
@@ -120,7 +187,7 @@
 
     const updateMedia = (query = "") => {
 
-        fetch('/extensions/instagram-display/media/async' + query)
+        return fetch('/extensions/instagram-display/media/async' + query)
             .then(result => {
                 clearMedia();
                 return result.json()
@@ -139,10 +206,13 @@
         const query = "?direction=" + direction +"&cursor=" + cursor;
 
         previousControl.disabled = true;
-        updateMedia(query);
-        setTimeout(() => {
+        previousControl.classList.add("loading");
+        let loading = updateMedia(query);
+
+        loading.then(() => {
+            previousControl.classList.remove("loading");
             previousControl.disabled = false;
-        }, 1000);
+        });
     }
 
     const handleNextButton = () => {
@@ -151,10 +221,13 @@
         const query = "?direction=" + direction +"&cursor=" + cursor;
 
         nextControl.disabled = true;
-        updateMedia(query);
-        setTimeout(() => {
+        nextControl.classList.add("loading");
+        let loading = updateMedia(query);
+
+        loading.then(() => {
+            nextControl.classList.remove("loading");
             nextControl.disabled = false;
-        }, 1000);
+        });
     }
 
     updateMedia();
