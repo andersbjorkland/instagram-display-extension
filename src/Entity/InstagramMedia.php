@@ -43,6 +43,11 @@ class InstagramMedia
      */
     private $filepath;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $instagramUrl;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -115,7 +120,7 @@ class InstagramMedia
      */
     public static function createFromArray(array $mediaArray): self
     {
-        $requiredKeys = ["id", "media_type", "caption", "timestamp"];
+        $requiredKeys = ["id", "media_type", "caption", "timestamp", "media_url"];
 
         foreach ($requiredKeys as $requiredKey) {
             if (!array_key_exists($requiredKey, $mediaArray)) {
@@ -127,8 +132,26 @@ class InstagramMedia
             ->setInstagramId($mediaArray["id"])
             ->setMediaType($mediaArray["media_type"])
             ->setCaption($mediaArray["caption"])
-            ->setTimestamp($mediaArray["timestamp"]);
+            ->setTimestamp($mediaArray["timestamp"])
+            ->setInstagramUrl($mediaArray["media_url"])
+        ;
 
         return $media;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getInstagramUrl()
+    {
+        return $this->instagramUrl;
+    }
+
+    /**
+     * @param mixed $instagramUrl
+     */
+    public function setInstagramUrl($instagramUrl): void
+    {
+        $this->instagramUrl = $instagramUrl;
     }
 }

@@ -8,8 +8,10 @@ use AndersBjorkland\InstagramDisplayExtension\Entity\InstagramMedia;
 use AndersBjorkland\InstagramDisplayExtension\Entity\InstagramToken;
 use AndersBjorkland\InstagramDisplayExtension\Extension;
 use AndersBjorkland\InstagramDisplayExtension\Service\FileUploader;
+use Bolt\Configuration\Config;
 use Bolt\Extension\ExtensionController;
 use Bolt\Extension\ExtensionRegistry;
+use Bolt\Utils\ThumbnailHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -29,6 +31,43 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class Controller extends ExtensionController
 {
+
+    /**
+     * @var InstagramToken|object|null
+     */
+    protected $token;
+
+    /**
+     * @var HttpClientInterface
+     */
+    protected $client;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
+
+    protected $registry;
+
+    /**
+     * Controller constructor.
+     */
+    public function __construct(Config $config, HttpClientInterface $client, EntityManagerInterface $entityManager, ExtensionRegistry $registry)
+    {
+        parent::__construct($config);
+        $this->client = $client;
+        $this->entityManager = $entityManager;
+        $this->registry = $registry;
+
+        $token = null;
+        $tokens = $entityManager->getRepository(InstagramToken::class)->findAll();
+        if (count($tokens) > 0) {
+            $token = $tokens[0];
+        }
+        $this->token = $token;
+    }
+
 
     /**
      * @Route("/extensions/instagram-display/", name="instagram_authorize")
@@ -98,101 +137,187 @@ class Controller extends ExtensionController
         return $this->redirectToRoute('bolt_dashboard');
     }
 
-    /**
-     * @Route("/extensions/instagram-display/media", name="instagram_media")
-     */
-    public function getMedia(HttpClientInterface $client, EntityManagerInterface $entityManager, ExtensionRegistry $registry): Response
+    public function getMediaContent(Request $request, EntityManagerInterface $entityManager): array
     {
-        $repository = $this->getDoctrine()->getRepository(InstagramToken::class);
-        $tokens = $repository->findAll();
+        $parameters = $request->query->all();
 
-        if (count($tokens) > 0) {
-            $instagramToken = $tokens[0];
-            $media = false;
-            $mediaEntities = [];
+        $cursorRequest = "";
 
-            // Fetch instagram media
-            try {
-                $response = $this->getMediaPosts($instagramToken, $client)->toArray();
+        $allowedQueryParameters = ["direction", "cursor"];
+        $allowedDirectionValues = ["before", "after"];
+        $parametersAreCorrect = true;
 
-                $configs = $registry->getExtension(Extension::class)->getConfig();
-
-                if (array_key_exists("data", $response)) {
-                    $media = [];
-                    $responseData = $response["data"];
-                    foreach ($responseData as $dataElement) {
-                        array_push($media, $this->getMediaPost($dataElement["id"], $instagramToken, $client)->toArray());
-                    }
+        if (count($parameters) > 0) {
+            foreach($allowedQueryParameters as $allowedParameter) {
+                if (!array_key_exists($allowedParameter, $parameters)) {
+                    $parametersAreCorrect = false;
                 }
+            }
+        } else {
+            $parametersAreCorrect = false;
+        }
+
+        if ($parametersAreCorrect) {
+            $direction = $parameters["direction"];
+            $cursor = $parameters["cursor"];
+
+            $cursorRequest = "$direction=$cursor";
+        }
 
 
-                $allowVideo = $configs["allow_video"];
-                $fileUploader = new FileUploader($registry);
 
+        $media = false;
+        $mediaEntities = [];
+        $context = [];
 
-                // Store media
-                if (count($media) > 0) {
-                    $hasDatabaseTransaction = false;
-                    foreach ($media as $mediaElement) {
+        // Fetch instagram media
+        try {
+            $response = $this->getMediaPosts($cursorRequest)->toArray();
 
-                        // Check if $media has already been stored.
-                        $instagramMedia = $entityManager->getRepository(InstagramMedia::class)
-                            ->findOneBy(["instagramId" => $mediaElement["id"]]);
+            $configs = $this->registry->getExtension(Extension::class)->getConfig();
 
-                        if (
-                            $instagramMedia === null
-                            || ($instagramMedia !== null && !file_exists($instagramMedia->getFilepath()))
-                        ) {
-                            if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
-                                $filePath = $fileUploader->upload($mediaElement);
-
-                                if ($filePath !== false) {
-                                    $instagramMedia ?? InstagramMedia::createFromArray($mediaElement);
-                                    $instagramMedia->setFilepath($filePath);
-
-                                    $entityManager->persist($instagramMedia);
-                                    if (!$hasDatabaseTransaction) {
-                                        $hasDatabaseTransaction = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        if ($instagramMedia !== null) {
-                            array_push($mediaEntities, $instagramMedia);
-                            dump([
-                                "Media" => $instagramMedia,
-                                "Path" => $instagramMedia->getFilepath(),
-                                "Exists" => file_exists($instagramMedia->getFilepath())
-                            ]);
-                        }
-                    }
-                    $entityManager->flush();
+            if (array_key_exists("data", $response)) {
+                $media = [];
+                $responseData = $response["data"];
+                foreach ($responseData as $dataElement) {
+                    array_push($media, $this->getMediaPost($dataElement["id"])->toArray());
                 }
-
-            } catch (TransportExceptionInterface | Exception $e) {
-                $response = [
-                    "message" => "Something went wrong fetching media posts",
-                    "trace" => $e->getTrace()
-                ];
             }
 
-            $context = [
-                "title" => "Instagram Media Display",
-                "media" => $mediaEntities,
-                "message" => "Token is fetched.",
-                "response" => $response
-            ];
-        } else {
-            $context = [
-                "title" => "Instagram Media Display",
-                "media" => false,
-                "message" => "No token was stored. Authorize your app."
+            if (array_key_exists("paging", $response)) {
+                $paging = $response["paging"];
+                $pagingResult = [];
+
+                if (array_key_exists("cursors", $paging)) {
+                    if (array_key_exists("before", $paging["cursors"]) && array_key_exists("previous", $paging)) {
+                        $pagingResult["previous"] = $paging["cursors"]["before"];
+                    }
+
+                    if (array_key_exists("after", $paging["cursors"]) && array_key_exists("next", $paging)) {
+                        $pagingResult["next"] = $paging["cursors"]["after"];
+                    }
+                }
+
+                if (count($pagingResult) > 0) {
+                    $context["paging"] = $pagingResult;
+                }
+            }
+
+
+            $allowVideo = $configs["allow_video"];
+            $storeVideo = $configs["store_video"];
+            $fileUploader = new FileUploader($configs);
+
+
+            // Store media
+            if (count($media) > 0) {
+                $hasDatabaseTransaction = false;
+                foreach ($media as $mediaElement) {
+
+                    // Check if $media has already been stored.
+                    $instagramMedia = $entityManager->getRepository(InstagramMedia::class)
+                        ->findOneBy(["instagramId" => $mediaElement["id"]]);
+
+                    if (
+                        $instagramMedia === null
+                        || !file_exists($instagramMedia->getFilepath())
+                    ) {
+                        if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
+
+                            $filePath = false;
+                            if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $storeVideo) {
+                                $filePath = $fileUploader->upload($mediaElement);
+                            }
+
+                            $instagramMedia = $instagramMedia ?? InstagramMedia::createFromArray($mediaElement);
+
+                            if ($filePath !== false) {
+                                $instagramMedia->setFilepath($filePath);
+                            }
+
+                            $entityManager->persist($instagramMedia);
+                            if (!$hasDatabaseTransaction) {
+                                $hasDatabaseTransaction = true;
+                            }
+                        }
+                    }
+
+                    if ($instagramMedia !== null) {
+                        array_push($mediaEntities, $instagramMedia);
+                    }
+                }
+                $entityManager->flush();
+            }
+
+        } catch (TransportExceptionInterface | Exception $e) {
+            $response = [
+                "message" => "Something went wrong fetching media posts",
+                "trace" => $e->getTrace()
             ];
         }
 
+        $context["title"] = "Instagram Media Display";
+        $context["media"] = $mediaEntities;
+        $context["message"] = "Token is fetched.";
+        $context["response"] = $response;
+
+        return $context;
+    }
+
+    /**
+     * @Route("/extensions/instagram-display/media/async", name="instagram_media_async")
+     */
+    public function getAsyncMedia(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+
+        $context = $this->getMediaContent($request, $entityManager);
+
+        $parsedResponse = [];
+
+        if (array_key_exists("media", $context)) {
+            $mediaItems = $context["media"];
+            $media = [];
+
+            $configs = $this->registry->getExtension(Extension::class)->getConfig();
+            $thumbnailWidth = $configs->get('async_thumbnail_width');
+
+            foreach ($mediaItems as $mediaEntity) {
+                if ($mediaEntity instanceof InstagramMedia) {
+                    $mediaContent = [
+                        "media_type" => $mediaEntity->getMediaType(),
+                        "filepath" => $mediaEntity->getFilepath(),
+                        "caption" => $mediaEntity->getCaption(),
+                        "instagram_url" => $mediaEntity->getInstagramUrl(),
+                        "thumbnail" => (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth)
+                    ];
+                    array_push($media, $mediaContent);
+                }
+            }
+
+            if (count($media) > 0) {
+                $parsedResponse["media"] = $media;
+            }
+
+        }
+
+        if (array_key_exists("paging", $context)) {
+            $parsedResponse["paging"] = $context["paging"];
+        }
+
+        return new JsonResponse($parsedResponse);
+    }
+
+    /**
+     * @Route("/extensions/instagram-display/media", name="instagram_media")
+     */
+    public function getMedia(Request $request, EntityManagerInterface $entityManager): Response
+    {
+
+        $context = $this->getMediaContent($request, $entityManager);
+
         return $this->render('@instagram-display-extension/page.html.twig', $context);
     }
+
 
     /**
      * @Route("/extensions/instagram-display/refresh", name="instagram_refresh")
@@ -352,13 +477,28 @@ class Controller extends ExtensionController
     /**
      * @throws TransportExceptionInterface
      */
-    protected function getMediaPosts(InstagramToken $instagramToken, HttpClientInterface $client): ResponseInterface
+    protected function getMediaPosts(string $cursor = null): ResponseInterface
     {
+        $instagramToken = $this->token;
+        $client = $this->client;
+
         $instagramUserId = $instagramToken->getInstagramUserId();
         $token = $instagramToken->getToken();
+
+        $configs = $this->registry->getExtension(Extension::class)->getConfig();
+        $limit = $configs->get('results_per_page');
+
+        $cursorQuery = '';
+        if ($cursor !== null) {
+            $cursorQuery = "&$cursor";
+        }
+
         $url = "https://graph.instagram.com/$instagramUserId"
             ."/media"
-            ."?access_token=$token";
+            ."?access_token=$token"
+            ."&limit=$limit"
+            . $cursorQuery
+        ;
 
         return $client->request('GET', $url);
     }
@@ -366,13 +506,15 @@ class Controller extends ExtensionController
     /**
      * @throws TransportExceptionInterface
      */
-    protected function getMediaPost(string $mediaId, InstagramToken $instagramToken, HttpClientInterface $client): ResponseInterface
+    protected function getMediaPost(string $mediaId): ResponseInterface
     {
-        $token = $instagramToken->getToken();
+
+
+        $token = $this->token->getToken();
         $url = "https://graph.instagram.com/$mediaId"
             ."?fields=media_type,media_url,caption,timestamp,username"
             ."&access_token=$token";
 
-        return $client->request('GET', $url);
+        return $this->client->request('GET', $url);
     }
 }

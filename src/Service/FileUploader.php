@@ -5,8 +5,7 @@ namespace AndersBjorkland\InstagramDisplayExtension\Service;
 
 
 use AndersBjorkland\InstagramDisplayExtension\Exceptions\MissingArrayKeyException;
-use AndersBjorkland\InstagramDisplayExtension\Extension;
-use Bolt\Extension\ExtensionRegistry;
+use Tightenco\Collect\Support\Collection;
 
 class FileUploader
 {
@@ -14,11 +13,11 @@ class FileUploader
 
     /**
      * FileUploader constructor.
-     * @param ExtensionRegistry $registry
+     * @param Collection $extensionConfig
      */
-    public function __construct(ExtensionRegistry $registry)
+    public function __construct(Collection $extensionConfig)
     {
-        $this->extensionConfig = $registry->getExtension(Extension::class)->getConfig();
+        $this->extensionConfig = $extensionConfig;
     }
 
 

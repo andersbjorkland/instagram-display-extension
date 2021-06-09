@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8">
     <title>{{ title }}</title>
-    <link rel="stylesheet" href="css/style.css">
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -13,13 +12,8 @@
 
 <h1>{{title}}</h1>
 
-<p>Hello</p>
-
-{{ dump() }}
 
 {% if media is defined and media is not false %}
-    <h2>There something going on!</h2>
-
     {% for mediaElement in media %}
         {% if mediaElement.mediaType is same as "IMAGE" %}
             {% set mediaPath = mediaElement.filepath|replace({'files': ''}) %}
@@ -33,7 +27,36 @@
                  alt="{{ mediaElement.caption }}"
             >
         {% endif %}
+        {% if mediaElement.mediaType is same as "CAROUSEL_ALBUM" %}
+            {% set mediaPath = mediaElement.filepath|replace({'files': ''}) %}
+            <img srcset="{{ mediaPath|thumbnail(width=320) }} 320w,
+                        {{ mediaPath|thumbnail(width=480) }} 480w,
+                        {{ mediaPath|thumbnail(width=800) }} 800w"
+                 sizes="(max-width: 400px) 320px,
+                        (max-width: 600px) 480px,
+                        800px"
+                 src="{{ asset(mediaElement.filepath) }}"
+                 alt="{{ mediaElement.caption }}"
+            >
+        {% endif %}
+        {% if mediaElement.mediaType is same as "VIDEO" %}
+            {% if mediaElement.filepath is empty %}
+                {% set mediaPath = mediaElement.instagramUrl %}
+            {% else %}
+                {% set mediaPath = asset(mediaElement.filepath) %}
+            {% endif %}
+            <video src="{{ mediaPath }}" controls></video>
+        {% endif %}
     {% endfor %}
+
+    {% if paging is defined %}
+        {% if paging.previous is defined %}
+            <a href="{{ path('instagram_media', {direction: "before", cursor: paging.previous}) }}">Previous</a>
+        {% endif %}
+        {% if paging.next is defined %}
+            <a href="{{ path('instagram_media', {direction: "after", cursor: paging.next}) }}">Next</a>
+        {% endif %}
+    {% endif %}
 {% endif %}
 
 </body>

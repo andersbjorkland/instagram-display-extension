@@ -1,0 +1,162 @@
+<h2>THIS IS INSTAGRAM YEAH!!!</h2>
+
+<div id="instagram-media-wrapper">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+
+    <div id="instagram-media-container">
+
+    </div>
+    <div id="instagram-media-paging-controls">
+        <button id="instagram-media-paging-previous" class="button" data-previous="" onclick="handlePreviousButton()">Previous</button>
+        <button id="instagram-media-paging-next" class="button" data-next="" onclick="handleNextButton()">Next</button>
+    </div>
+</div>
+
+<script>
+    console.log("Hello from Instagram Display Extension!");
+
+    const container = document.getElementById('instagram-media-container');
+    const previousControl = document.getElementById('instagram-media-paging-previous');
+    const nextControl = document.getElementById('instagram-media-paging-next');
+
+    const getVideoElement = (video) => {
+        let source;
+
+        if (video.filepath.length > 0) {
+            source = video["filepath"];
+        } else {
+            source = video["instagram_url"];
+        }
+
+        const videoElement = document.createElement("video");
+        videoElement.setAttribute("src", source);
+        videoElement.setAttribute("controls", "controls");
+
+        return videoElement;
+    }
+
+    const getImageElement = (image) => {
+        let source;
+
+        if (image.thumbnail.length > 0) {
+            source = image["thumbnail"];
+        } else {
+            source = image["instagram_url"];
+        }
+
+        const imageElement = document.createElement("img");
+        imageElement.setAttribute("src", source);
+        imageElement.setAttribute("alt", "");
+
+        return imageElement;
+    }
+
+    const createElementsFromData = (data) => {
+        if ("media" in data) {
+            if (Array.isArray(data.media)) {
+                data.media.forEach(item => {
+                    if (Object.keys(item).includes("media_type")) {
+                        let elementToAppend = null;
+                        switch (item["media_type"]) {
+                            case "VIDEO":
+                                elementToAppend = getVideoElement(item);
+                                break;
+
+                            case "IMAGE":
+                                elementToAppend = getImageElement(item);
+                                break;
+
+                            case "CAROUSEL_ALBUM":
+                                console.log("PHOTO ALBUM");
+                                elementToAppend = getImageElement(item);
+                                break;
+
+                            default:
+                                console.log("UNKNOWN MEDIA TYPE: " + item["media_type"]);
+                        }
+
+                        if (elementToAppend !== null) {
+                            container.appendChild(elementToAppend);
+                        }
+
+                    }
+
+                });
+            }
+        }
+    }
+
+    const managePagingControls = (data) => {
+        if ("paging" in data) {
+            if ("previous" in data.paging) {
+                previousControl.classList.remove("hidden");
+                previousControl.dataset.previous = data.paging.previous;
+
+            } else {
+                previousControl.classList.add("hidden");
+                previousControl.dataset.previous = "";
+            }
+
+            if ("next" in data.paging) {
+                nextControl.classList.remove("hidden");
+                nextControl.dataset.next = data.paging.next;
+            } else {
+                nextControl.classList.add("hidden");
+                nextControl.dataset.next = "";
+            }
+        }
+    }
+    const clearMedia = () => {
+
+        // As describe in option 2 A: https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
+        while (container.firstChild) {
+            container.removeChild(container.lastChild);
+        }
+    }
+
+    const updateMedia = (query = "") => {
+
+        fetch('/extensions/instagram-display/media/async' + query)
+            .then(result => {
+                clearMedia();
+                return result.json()
+            })
+            .then(data => {
+                createElementsFromData(data);
+                managePagingControls(data);
+            });
+    }
+
+
+
+    const handlePreviousButton = () => {
+        const direction = "before";
+        const cursor = previousControl.dataset.previous;
+        const query = "?direction=" + direction +"&cursor=" + cursor;
+
+        previousControl.disabled = true;
+        updateMedia(query);
+        setTimeout(() => {
+            previousControl.disabled = false;
+        }, 1000);
+    }
+
+    const handleNextButton = () => {
+        const direction = "after";
+        const cursor = nextControl.dataset.next;
+        const query = "?direction=" + direction +"&cursor=" + cursor;
+
+        nextControl.disabled = true;
+        updateMedia(query);
+        setTimeout(() => {
+            nextControl.disabled = false;
+        }, 1000);
+    }
+
+    updateMedia();
+
+</script>
