@@ -19,16 +19,27 @@
 
         .default-style .element-link-wrapper {
             position: absolute;
-            padding: 0.5rem;
-            background: rgba(0, 0, 0, 0.3);
             width: 100%;
             top: 0;
             display: flex;
             justify-content: flex-end;
         }
 
+        .default-style .element-link-wrapper a {
+            padding: 0.4rem 0.5rem 0.25rem 0.6rem;
+            opacity: 0.5;
+        }
+
+        .default-style .element-link-wrapper a:hover {
+            opacity: 0.8;
+        }
+
         .default-style a {
             width: fit-content;
+        }
+
+        .default-style .button-container a:hover {
+            opacity: 0.8;
         }
 
         .default-style #instagram-media-container img, .default-style #instagram-media-container video {
@@ -41,7 +52,7 @@
 
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 1rem;
 
             justify-content: center;
             align-items: center;
@@ -53,7 +64,7 @@
             margin: 0.5em auto;
             display: grid;
             grid-template-columns: 6.5em 6.5em;
-            gap: 0.5rem;
+            gap: 1rem;
         }
 
         .default-style #instagram-media-paging-previous {
@@ -154,7 +165,7 @@
     const wrapper = document.getElementById('instagram-media-wrapper');
     const newTabIcon = document.getElementsByClassName('andersbjorkland-icon')[0];
 
-    const getVideoElement = (video, width = -1) => {
+    const getVideoElement = (video, width = -1, height = -1) => {
         let source;
 
         if (video.filepath?.length > 0) {
@@ -169,6 +180,10 @@
 
         if (width > 0) {
             videoElement.setAttribute("width", "" + width);
+        }
+
+        if (height > 0) {
+            videoElement.setAttribute("height", "" + height);
         }
 
         return videoElement;
@@ -191,12 +206,20 @@
     }
 
     const createElementsFromData = (data) => {
-        let videoWidth;
+        let videoWidth = -1;
+        let videoHeight = -1;
+        let linkBgColor = null;
 
         if ("video_width" in data) {
             videoWidth = data["video_width"];
-        } else {
-            videoWidth = -1;
+        }
+
+        if ("video_height" in data) {
+            videoHeight = data["video_height"];
+        }
+
+        if ("overlay_color" in data) {
+            linkBgColor = data["overlay_color"];
         }
 
         if ("media" in data) {
@@ -206,7 +229,7 @@
                         let elementToAppend = null;
                         switch (item["media_type"]) {
                             case "VIDEO":
-                                elementToAppend = getVideoElement(item, videoWidth);
+                                elementToAppend = getVideoElement(item, videoWidth, videoHeight);
                                 break;
 
                             case "IMAGE":
@@ -229,6 +252,10 @@
 
                             elementWrapper.classList.add("element-wrapper");
                             elementLinkWrapper.classList.add("element-link-wrapper");
+
+                            if (linkBgColor !== null) {
+                                elementLink.setAttribute("style", "background-color: " + linkBgColor + ";");
+                            }
 
                             elementLink.setAttribute("href", item["permalink"]);
                             elementLink.setAttribute("target", "__hidden");

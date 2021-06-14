@@ -285,12 +285,15 @@ class Controller extends ExtensionController
             $media = [];
 
             $configs = $this->registry->getExtension(Extension::class)->getConfig();
-            $thumbnailWidth = $configs->get('async_thumbnail_width');
+            $thumbnailWidth = $configs->get('thumbnail_width');
+            $thumbnailHeight = $configs->get('thumbnail_height');
 
-            $parsedResponse["video_width"] = $configs->get('async_video_width');
+            $parsedResponse["video_width"] = $configs->get('thumbnail_width');
+            $parsedResponse["video_height"] = $configs->get('thumbnail_height');
             $showFollow = $configs->get('show_follow_on_instagram');
             
             $parsedResponse["icon_color"] = $configs->get('icon_color');
+            $parsedResponse["overlay_color"] = $configs->get('overlay_color');
             $parsedResponse["default_style"] = $configs->get('default_style');
 
             $instagramUsername = null;
@@ -315,7 +318,7 @@ class Controller extends ExtensionController
                         "instagram_url" => $mediaEntity->getInstagramUrl(),
                         "instagram_username" => $mediaEntity->getInstagramUsername(),
                         "permalink" => $mediaEntity->getPermalink(),
-                        "thumbnail" => (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth)
+                        "thumbnail" => (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth, $thumbnailHeight, null, null, 'c')
                     ];
                     array_push($media, $mediaContent);
                 }

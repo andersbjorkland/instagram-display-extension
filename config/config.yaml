@@ -1,12 +1,17 @@
 
 results_per_page: 10
 
-# Set the width you prefer for the images in your async results
-async_thumbnail_width: 400
-async_video_width: 400
+# Set the width you prefer for the images and videos in your async results
+# set to null to use original size.
+thumbnail_width: 400
+thumbnail_height: 300
 
+# Use our default styles, or provide your own.
 default_style: true
-icon_color: '#cdcdcd'
+
+# Define the color for the instagram-link to your media posts.
+icon_color: 'rgba(200, 200, 200, 1)'
+overlay_color: 'rgba(0, 0, 0, 0.6)'
 
 # Show a link for 'Follow on Instagram'
 show_follow_on_instagram: true
