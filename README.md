@@ -1,8 +1,9 @@
-# Acme ReferenceExtension
+# Instagram Display Extension
 
-Author: YourNameHere
+Author: Anders Björkland
 
-This Bolt extension can be used as a starting point to base your own extensions on.
+This Bolt extension can be used to display your Instagram posts on your website. 
+Add ``{% include "@instagram-display-extension/partials/_media.html.twig" %}`` to a template where you want to display it.
 
 Installation:
 

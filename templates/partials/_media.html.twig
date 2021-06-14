@@ -1,15 +1,20 @@
 {% block stylesheets %}
     <style>
 
+        #instagram-media-wrapper {
+            --fill-color: white;
+            --stroke-color: white;
+        }
+        
         #instagram-media-wrapper .hidden {
             display: none;
         }
 
-        #instagram-media-container img, #instagram-media-container video {
+        .default-style #instagram-media-container img, .default-style #instagram-media-container video {
             max-width: 100%;
         }
 
-        #instagram-media-container {
+        .default-style #instagram-media-container {
             width: fit-content;
             margin: auto;
 
@@ -21,7 +26,7 @@
             align-items: center;
         }
 
-        .instagram-paging-controls {
+        .default-style .instagram-paging-controls {
             position: relative;
             width: fit-content;
             margin: 0.5em auto;
@@ -30,28 +35,50 @@
             gap: 0.5rem;
         }
 
-        #instagram-media-paging-previous {
+        .default-style #instagram-media-paging-previous {
             grid-column: 1;
             margin-left: auto;
         }
-        #instagram-media-paging-controls .button.loading::before {
+        .default-style #instagram-media-paging-controls .button.loading::before {
             position: absolute;
             top: 0;
             left: 0%;
             width: 5%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.3);
             content: "";
             animation: button-loading 2s infinite;
         }
 
-        #instagram-media-paging-next {
+        .default-style #instagram-media-paging-next {
             grid-column: 2;
             margin-right: auto;
         }
 
-        .instagram-paging-controls .button {
+        .default-style .instagram-paging-controls .button {
             width: 100%;
+        }
+
+        .default-style .instagram-follow--right {
+            margin-left: auto;
+        }
+
+        .default-style #instagram-media-follow-link {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .default-style .andersbjorkland-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .default-style .andersbjorkland-icon .andersbjorkland-icon--fill {
+            fill: var(--fill-color);
+        }
+        .default-style .andersbjorkland-icon .andersbjorkland-icon--stroke {
+            stroke: var(--stroke-color);
         }
 
         @keyframes button-loading {
@@ -63,7 +90,7 @@
     </style>
 {% endblock %}
 
-<div id="instagram-media-wrapper">
+<div id="instagram-media-wrapper" class="default-style">
 
     <div id="instagram-media-container">
 
@@ -72,17 +99,43 @@
         <button id="instagram-media-paging-previous" class="button hidden" data-previous="" onclick="handlePreviousButton()">Previous</button>
         <button id="instagram-media-paging-next" class="button hidden" data-next="" onclick="handleNextButton()">Next</button>
     </div>
+    <div id="instagram-media-follow" class="hidden">
+        <div class="button-container">
+            <a id="instagram-media-follow-link" href="#" target="_hidden" rel="noopener" class="">
+                Follow on Instagram
+                <svg class="andersbjorkland-icon" xmlns="http://www.w3.org/2000/svg" width="60.157" height="60.157" viewBox="0 0 60.157 60.157">
+                    <g id="new-tab" transform="translate(-649 -453.843)">
+                        <path id="Subtraction_2" class="andersbjorkland-icon--fill" data-name="Subtraction 2" d="M46,55H8a8.009,8.009,0,0,1-8-8V9A8.009,8.009,0,0,1,8,1H30V9H8V47H46V25h8V47A8.009,8.009,0,0,1,46,55Z" transform="translate(649 459)" fill="#707070"/>
+                        <g id="arrow">
+                        <g id="Group_2" data-name="Group 2" transform="translate(663.363 455.5)">
+                            <g id="Group_1" data-name="Group 1">
+                            <g id="Group_3" data-name="Group 3">
+                                <line id="Line_1" class="andersbjorkland-icon--stroke" data-name="Line 1" y2="20" transform="translate(42.137 19) rotate(180)" fill="none" stroke="#707070" stroke-width="6"/>
+                                <line id="Line_2" class="andersbjorkland-icon--stroke" data-name="Line 2" y2="20" transform="translate(45.137 2) rotate(90)" fill="none" stroke="#707070" stroke-width="6"/>
+                            </g>
+                            </g>
+                        </g>
+                        <line id="Line_3" class=" andersbjorkland-icon--stroke" data-name="Line 3" x1="28" y2="28" transform="translate(675.5 459.5)" fill="none" stroke="#707070" stroke-linecap="round" stroke-width="8"/>
+                        </g>
+                    </g>
+                </svg>
+            </a>
+        </div>
+    </div>
 </div>
 
 <script>
     const container = document.getElementById('instagram-media-container');
     const previousControl = document.getElementById('instagram-media-paging-previous');
     const nextControl = document.getElementById('instagram-media-paging-next');
+    const followContainer = document.getElementById('instagram-media-follow');
+    const followLink = document.getElementById('instagram-media-follow-link');
+    const wrapper = document.getElementById('instagram-media-wrapper');
 
     const getVideoElement = (video, width = -1) => {
         let source;
 
-        if (video.filepath.length > 0) {
+        if (video.filepath?.length > 0) {
             source = video["filepath"];
         } else {
             source = video["instagram_url"];
@@ -177,6 +230,49 @@
             }
         }
     }
+
+    const manageFollowLink = (data) => {
+        let shouldShow = false;
+        let url = "";
+        let followClassnames = "";
+
+        if ("instagram_follow" in data) {
+            if ("url" in data["instagram_follow"]) {
+                shouldShow = true;
+                url = data["instagram_follow"]["url"];
+            }
+
+            if ("classname" in data["instagram_follow"]) {
+                followClassnames = data["instagram_follow"]["classname"];
+                
+                if (followClassnames.length > 0){
+                    followClassnames = followClassnames.split(" ");
+                    followLink.classList.add(...followClassnames);
+                }
+            }
+        }
+        if (shouldShow) {
+            followContainer.classList.remove("hidden");
+            followLink.setAttribute("href", url);
+        } else {
+            followContainer.classList.add("hidden");
+        }
+    }
+
+    const manageWrapper = (data) => {
+        if ("icon_color" in data) {
+            let color = data["icon_color"];
+            wrapper.setAttribute("style", "--fill-color:" + color + " ; --stroke-color: " + color + ";");
+        }
+
+        if ("default_style" in data) {
+            let useDefaultStyle = data["default_style"];
+            if (!useDefaultStyle) {
+                wrapper.classList.remove("default-style");
+            }
+        }
+    }
+
     const clearMedia = () => {
 
         // As describe in option 2 A: https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
@@ -193,8 +289,12 @@
                 return result.json()
             })
             .then(data => {
+                console.log(data);
+
                 createElementsFromData(data);
+                manageWrapper(data);
                 managePagingControls(data);
+                manageFollowLink(data);
             });
     }
 

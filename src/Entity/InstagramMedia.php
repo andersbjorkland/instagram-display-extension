@@ -48,6 +48,16 @@ class InstagramMedia
      */
     private $instagramUrl;
 
+     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $permalink;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $instagramUsername;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -113,6 +123,30 @@ class InstagramMedia
         return $this;
     }
 
+    public function getPermalink(): ?string
+    {
+        return $this->permalink;
+    }
+
+    public function setPermalink(?string $permalink): self
+    {
+        $this->permalink = $permalink;
+
+        return $this;
+    }
+
+    public function getInstagramUsername(): ?string
+    {
+        return $this->instagramUsername;
+    }
+
+    public function setInstagramUsername(?string $instagramUsername): self
+    {
+        $this->instagramUsername = $instagramUsername;
+
+        return $this;
+    }
+
     /**
      * createFormArray creates a InstagramMedia entity from an array with keys "id", "media_type", "caption", "timestamp".
      * This function is useful if you have a response array from api-endpoint containing theses keys.
@@ -135,6 +169,14 @@ class InstagramMedia
             ->setTimestamp($mediaArray["timestamp"])
             ->setInstagramUrl($mediaArray["media_url"])
         ;
+
+        if (array_key_exists("permalink", $mediaArray)) {
+            $media->setPermalink($mediaArray["permalink"]);
+        }
+
+        if (array_key_exists("username", $mediaArray)) {
+            $media->setInstagramUsername($mediaArray["username"]);
+        }
 
         return $media;
     }

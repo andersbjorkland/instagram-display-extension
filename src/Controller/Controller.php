@@ -180,7 +180,7 @@ class Controller extends ExtensionController
                 $media = [];
                 $responseData = $response["data"];
                 foreach ($responseData as $dataElement) {
-                    array_push($media, $this->getMediaPost($dataElement["id"])->toArray());
+                    array_push($media, $dataElement);
                 }
             }
 
@@ -220,7 +220,7 @@ class Controller extends ExtensionController
 
                     if (
                         $instagramMedia === null
-                        || !file_exists($instagramMedia->getFilepath())
+                        || ($instagramMedia->getFilepath() && !file_exists($instagramMedia->getFilepath()))
                     ) {
                         if (strcmp(strtolower($mediaElement["media_type"]), "video") !== 0 || $allowVideo) {
 
@@ -282,14 +282,33 @@ class Controller extends ExtensionController
             $thumbnailWidth = $configs->get('async_thumbnail_width');
 
             $parsedResponse["video_width"] = $configs->get('async_video_width');
+            $showFollow = $configs->get('show_follow_on_instagram');
+            
+            $parsedResponse["icon_color"] = $configs->get('icon_color');
+            $parsedResponse["default_style"] = $configs->get('default_style');
+
+            $instagramUsername = null;
 
             foreach ($mediaItems as $mediaEntity) {
                 if ($mediaEntity instanceof InstagramMedia) {
+
+                    if ($instagramUsername === null && $mediaEntity->getInstagramUsername() && $showFollow) {
+                        $followClassname = $configs->get('follow_classname');
+                        $instagramUsername = $mediaEntity->getInstagramUsername();
+                        $parsedResponse["instagram_follow"] = [
+                            "url" => "https://www.instagram.com/$instagramUsername/", 
+                            "username" => $instagramUsername,
+                            "classname" => $followClassname
+                        ];
+                    }
+
                     $mediaContent = [
                         "media_type" => $mediaEntity->getMediaType(),
                         "filepath" => $mediaEntity->getFilepath(),
                         "caption" => $mediaEntity->getCaption(),
                         "instagram_url" => $mediaEntity->getInstagramUrl(),
+                        "instagram_username" => $mediaEntity->getInstagramUsername(),
+                        "permalink" => $mediaEntity->getPermalink(),
                         "thumbnail" => (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth)
                     ];
                     array_push($media, $mediaContent);
@@ -495,10 +514,13 @@ class Controller extends ExtensionController
             $cursorQuery = "&$cursor";
         }
 
+        $fields = "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username";
+
         $url = "https://graph.instagram.com/$instagramUserId"
             ."/media"
             ."?access_token=$token"
             ."&limit=$limit"
+            ."&fields=$fields"
             . $cursorQuery
         ;
 
@@ -515,6 +537,21 @@ class Controller extends ExtensionController
         $token = $this->token->getToken();
         $url = "https://graph.instagram.com/$mediaId"
             ."?fields=media_type,media_url,caption,timestamp,username"
+            ."&access_token=$token";
+
+        return $this->client->request('GET', $url);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     */
+    protected function getInstagramUsername(): ResponseInterface
+    {
+
+
+        $token = $this->token->getToken();
+        $url = "https://graph.instagram.com/me"
+            ."?fields=username"
             ."&access_token=$token";
 
         return $this->client->request('GET', $url);
