@@ -147,6 +147,19 @@ class InstagramMedia
         return $this;
     }
 
+    public function updateInstagramMedia(InstagramMedia $referenceMedia): self
+    {
+        $this->instagramId = $referenceMedia->getInstagramId();
+        $this->mediaType = $referenceMedia->getMediaType();
+        $this->caption = $referenceMedia->getCaption();
+        $this->timestamp = $referenceMedia->getTimestamp();
+        $this->instagramUrl = $referenceMedia->getInstagramUrl();
+        $this->permalink = $referenceMedia->getPermalink();
+        $this->instagramUsername = $referenceMedia->getInstagramUsername();
+
+        return $this;
+    }
+
     /**
      * createFormArray creates a InstagramMedia entity from an array with keys "id", "media_type", "caption", "timestamp".
      * This function is useful if you have a response array from api-endpoint containing theses keys.

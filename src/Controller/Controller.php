@@ -240,6 +240,12 @@ class Controller extends ExtensionController
                                 $hasDatabaseTransaction = true;
                             }
                         }
+                    } else {
+                        $tempMedia = InstagramMedia::createFromArray($mediaElement);
+                        if (strcmp($instagramMedia->getInstagramUrl(), $tempMedia->getInstagramUrl()) !== 0) {
+                            $instagramMedia->updateInstagramMedia($tempMedia);
+                            $entityManager->persist($instagramMedia);
+                        }
                     }
 
                     if ($instagramMedia !== null) {

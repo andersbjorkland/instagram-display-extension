@@ -10,6 +10,27 @@
             display: none;
         }
 
+        .default-style .element-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .default-style .element-link-wrapper {
+            position: absolute;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            width: 100%;
+            top: 0;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .default-style a {
+            width: fit-content;
+        }
+
         .default-style #instagram-media-container img, .default-style #instagram-media-container video {
             max-width: 100%;
         }
@@ -131,6 +152,7 @@
     const followContainer = document.getElementById('instagram-media-follow');
     const followLink = document.getElementById('instagram-media-follow-link');
     const wrapper = document.getElementById('instagram-media-wrapper');
+    const newTabIcon = document.getElementsByClassName('andersbjorkland-icon')[0];
 
     const getVideoElement = (video, width = -1) => {
         let source;
@@ -200,7 +222,22 @@
                         }
 
                         if (elementToAppend !== null) {
-                            container.appendChild(elementToAppend);
+                            const elementWrapper = document.createElement("div");
+                            const elementLinkWrapper = document.createElement("div");
+                            const elementLink = document.createElement("a");
+                            const elementNewTabIcon = newTabIcon.cloneNode(true);
+
+                            elementWrapper.classList.add("element-wrapper");
+                            elementLinkWrapper.classList.add("element-link-wrapper");
+
+                            elementLink.setAttribute("href", item["permalink"]);
+                            elementLink.setAttribute("target", "__hidden");
+                            elementLink.setAttribute("rel", "noopener");
+                            elementLink.appendChild(elementNewTabIcon);
+                            elementLinkWrapper.appendChild(elementLink);
+                            elementWrapper.appendChild(elementToAppend);
+                            elementWrapper.appendChild(elementLinkWrapper);
+                            container.appendChild(elementWrapper);
                         }
 
                     }
