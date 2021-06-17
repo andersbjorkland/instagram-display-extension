@@ -33,20 +33,10 @@ class Extension extends BaseExtension
 
     }
 
-    /**
-     * Ran automatically, if the current request is from the command line (CLI).
-     * You can use this method to set up things in your extension.
-     *
-     * Note: This runs on every request. Make sure what happens here is quick
-     * and efficient.
-     */
-    public function initializeCli(): void
-    {
-    }
-
     public function install(): void
     {
-       passthru("php bin/console doctrine:query:sql \"CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)\"", $result);
-       passthru("php bin/console doctrine:query:sql \"CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)\"");
+        $this->getConfig();
+        passthru("php bin/console doctrine:query:sql \"CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)\"", $result);
+        passthru("php bin/console doctrine:query:sql \"CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)\"");
     }
 }
