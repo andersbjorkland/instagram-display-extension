@@ -2,8 +2,13 @@
     <style>
 
         #instagram-media-wrapper {
-            --fill-color: white;
-            --stroke-color: white;
+            --bright-color: #ededed;
+            --dark-color: #333;
+            --fill-color: var(--bright-color);
+            --stroke-color: var(--bright-color);
+            --link-color: var(--bright-color);
+            --button-color: var(--bright-color);
+            --button-text-color: var(dark-color);
         }
         
         #instagram-media-wrapper .hidden {
@@ -89,6 +94,9 @@
 
         .default-style .instagram-paging-controls .button {
             width: 100%;
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            position: relative;
         }
 
         .default-style .instagram-follow--right {
@@ -99,6 +107,7 @@
             display: flex;
             gap: 0.5rem;
             align-items: center;
+            color: var(--link-color);
         }
 
         .default-style .andersbjorkland-icon {

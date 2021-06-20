@@ -1,5 +1,6 @@
-
+# Pagination settings
 results_per_page: 10
+show_pagination_controls: true
 
 # Set the width you prefer for the images and videos in your async results
 # set to null to use original size.
@@ -10,7 +11,7 @@ thumbnail_height: 300
 default_style: true
 
 # Define the color for the instagram-link to your media posts.
-icon_color: 'rgba(200, 200, 200, 1)'
+icon_color: 'rgba(237, 237, 237, 1)'
 overlay_color: 'rgba(0, 0, 0, 0.6)'
 
 # Show a link for 'Follow on Instagram'

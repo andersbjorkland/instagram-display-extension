@@ -174,7 +174,11 @@ class Controller extends ExtensionController
         try {
             $response = $this->getMediaPosts($cursorRequest)->toArray();
 
-            $configs = $this->registry->getExtension(Extension::class)->getConfig();
+            /**
+             * @var Extension
+             */
+            $extension = $this->registry->getExtension(Extension::class);
+            $configs = $extension->getConfig();
 
             if (array_key_exists("data", $response)) {
                 $media = [];
@@ -284,17 +288,23 @@ class Controller extends ExtensionController
             $mediaItems = $context["media"];
             $media = [];
 
-            $configs = $this->registry->getExtension(Extension::class)->getConfig();
+            /**
+             * @var Extension
+             */
+            $extension = $this->registry->getExtension(Extension::class);
+            $configs = $extension->getConfig();
             $thumbnailWidth = $configs->get('thumbnail_width');
             $thumbnailHeight = $configs->get('thumbnail_height');
 
             $parsedResponse["video_width"] = $configs->get('thumbnail_width');
             $parsedResponse["video_height"] = $configs->get('thumbnail_height');
-            $showFollow = $configs->get('show_follow_on_instagram');
+            
             
             $parsedResponse["icon_color"] = $configs->get('icon_color');
             $parsedResponse["overlay_color"] = $configs->get('overlay_color');
             $parsedResponse["default_style"] = $configs->get('default_style');
+
+            $showFollow = $configs->get('show_follow_on_instagram');
 
             $instagramUsername = null;
 
@@ -331,7 +341,9 @@ class Controller extends ExtensionController
         }
 
         if (array_key_exists("paging", $context)) {
-            $parsedResponse["paging"] = $context["paging"];
+            if ($configs->get('show_pagination_controls')) {
+                $parsedResponse["paging"] = $context["paging"];
+            }
         }
 
         return new JsonResponse($parsedResponse);
@@ -515,7 +527,11 @@ class Controller extends ExtensionController
         $instagramUserId = $instagramToken->getInstagramUserId();
         $token = $instagramToken->getToken();
 
-        $configs = $this->registry->getExtension(Extension::class)->getConfig();
+        /**
+         * @var Extension
+         */
+        $extension = $this->registry->getExtension(Extension::class);
+        $configs = $extension->getConfig();
         $limit = $configs->get('results_per_page');
 
         $cursorQuery = '';
