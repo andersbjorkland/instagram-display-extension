@@ -1,0 +1,174 @@
+#instagram-media-wrapper {
+  --bright-color: #ededed;
+  --dark-color: #333;
+  --fill-color: var(--bright-color);
+  --stroke-color: var(--bright-color);
+  --link-color: var(--bright-color);
+  --button-color: var(--bright-color);
+  --button-text-color: var(--dark-color);
+}
+
+#instagram-media-wrapper .hidden {
+  display: none;
+}
+
+.default-style#instagram-media-wrapper {
+  padding: 4rem 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.default-style .element-wrapper {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.default-style .element-link-wrapper {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
+}
+
+.default-style .element-link-wrapper a {
+  padding: 0.4rem 0.5rem 0.25rem 0.6rem;
+  opacity: 0.5;
+}
+
+.default-style .element-link-wrapper a:hover {
+  opacity: 0.8;
+}
+
+.default-style a {
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.default-style .button-container a:hover {
+  opacity: 0.8;
+}
+
+.default-style #instagram-media-container {
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: auto;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  gap: 1rem;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.default-style #instagram-media-container img, .default-style #instagram-media-container video {
+  max-width: 100%;
+}
+
+.default-style .instagram-paging-controls {
+  position: relative;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0.5em auto;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 6.5em 6.5em;
+      grid-template-columns: 6.5em 6.5em;
+  gap: 1rem;
+}
+
+.default-style .instagram-paging-controls .button {
+  width: 100%;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
+  position: relative;
+}
+
+.default-style .instagram-paging-controls .button.loading::before {
+  position: absolute;
+  top: 0;
+  left: 0%;
+  width: 5%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  content: "";
+  -webkit-animation: button-loading 2s infinite;
+          animation: button-loading 2s infinite;
+}
+
+.default-style #instagram-media-paging-previous {
+  -ms-grid-column: 1;
+  grid-column: 1;
+  margin-left: auto;
+}
+
+.default-style #instagram-media-paging-next {
+  -ms-grid-column: 2;
+  grid-column: 2;
+  margin-right: auto;
+}
+
+.default-style .instagram-follow--right {
+  margin-left: auto;
+}
+
+.default-style #instagram-media-follow-link {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 0.5rem;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  color: var(--link-color);
+}
+
+.default-style .andersbjorkland-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.default-style .andersbjorkland-icon .andersbjorkland-icon--fill {
+  fill: var(--fill-color);
+}
+
+.default-style .andersbjorkland-icon .andersbjorkland-icon--stroke {
+  stroke: var(--stroke-color);
+}
+
+@-webkit-keyframes button-loading {
+  50% {
+    left: 96%;
+  }
+}
+
+@keyframes button-loading {
+  50% {
+    left: 96%;
+  }
+}
+/*# sourceMappingURL=styles.css.map */

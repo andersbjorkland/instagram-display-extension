@@ -1,0 +1,45 @@
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{asset("assets/instagram-display-extension/styles.css", "public")}}" />
+{% endblock %}
+
+<div id="instagram-media-wrapper" class="{{ instagramWrapperClass|default("default-style")}}">
+    <div class="container">
+
+        <div id="instagram-media-container">
+
+        </div>
+
+        <div id="instagram-media-paging-controls" class="instagram-paging-controls">
+            <button id="instagram-media-paging-previous" class="button hidden" data-previous="" onclick="handlePreviousButton()">Previous</button>
+            <button id="instagram-media-paging-next" class="button hidden" data-next="" onclick="handleNextButton()">Next</button>
+        </div>
+
+        <div id="instagram-media-follow" class="hidden">
+            <div class="button-container">
+                <a id="instagram-media-follow-link" href="#" target="_hidden" rel="noopener" class="">
+                    Follow on Instagram
+                    <svg class="andersbjorkland-icon" xmlns="http://www.w3.org/2000/svg" width="60.157" height="60.157" viewBox="0 0 60.157 60.157">
+                        <g id="new-tab" transform="translate(-649 -453.843)">
+                            <path id="Subtraction_2" class="andersbjorkland-icon--fill" data-name="Subtraction 2" d="M46,55H8a8.009,8.009,0,0,1-8-8V9A8.009,8.009,0,0,1,8,1H30V9H8V47H46V25h8V47A8.009,8.009,0,0,1,46,55Z" transform="translate(649 459)" fill="#707070"/>
+                            <g id="arrow">
+                            <g id="Group_2" data-name="Group 2" transform="translate(663.363 455.5)">
+                                <g id="Group_1" data-name="Group 1">
+                                <g id="Group_3" data-name="Group 3">
+                                    <line id="Line_1" class="andersbjorkland-icon--stroke" data-name="Line 1" y2="20" transform="translate(42.137 19) rotate(180)" fill="none" stroke="#707070" stroke-width="6"/>
+                                    <line id="Line_2" class="andersbjorkland-icon--stroke" data-name="Line 2" y2="20" transform="translate(45.137 2) rotate(90)" fill="none" stroke="#707070" stroke-width="6"/>
+                                </g>
+                                </g>
+                            </g>
+                            <line id="Line_3" class=" andersbjorkland-icon--stroke" data-name="Line 3" x1="28" y2="28" transform="translate(675.5 459.5)" fill="none" stroke="#707070" stroke-linecap="round" stroke-width="8"/>
+                            </g>
+                        </g>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+    <script src="{{asset("assets/instagram-display-extension/asyncControl.js", "public")}}"></script>
+{% endblock %}
