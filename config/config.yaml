@@ -13,13 +13,13 @@ default_style: true
 # Define the color for the instagram-link to your media posts.
 icon_color: 'rgba(237, 237, 237, 1)'
 overlay_color: 'rgba(0, 0, 0, 0.6)'
+link_color: 'rgba(237, 237, 237, 1)'
 
 # Show a link for 'Follow on Instagram'
 show_follow_on_instagram: true
 follow_classname: 'instagram-follow--right'
 
 upload_location: 'files/instagram'
-max_upload_size: 8M
 
 # Set this to true if you want to display videos in your feed.
 allow_video: false

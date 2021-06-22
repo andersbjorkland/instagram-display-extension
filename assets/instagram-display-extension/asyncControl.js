@@ -165,9 +165,10 @@ const manageFollowLink = (data) => {
 }
 
 const manageWrapper = (data) => {
-    if ("icon_color" in data) {
+    if ("icon_color" in data && "link_color" in data) {
         let color = data["icon_color"];
-        wrapper.setAttribute("style", "--fill-color:" + color + " ; --stroke-color: " + color + ";");
+        let linkColor = data["link_color"];
+        wrapper.setAttribute("style", "--fill-color:" + color + " ; --stroke-color: " + color + "; --link-color: " + linkColor + ";");
     }
 
     if ("default_style" in data) {

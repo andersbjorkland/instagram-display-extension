@@ -298,12 +298,21 @@ class Controller extends ExtensionController
             $thumbnailWidth = $configs->get('thumbnail_width');
             $thumbnailHeight = $configs->get('thumbnail_height');
 
-            $parsedResponse["video_width"] = $configs->get('thumbnail_width');
-            $parsedResponse["video_height"] = $configs->get('thumbnail_height');
+            $thumbnailWidth = strcmp(strtolower("" . $thumbnailWidth), "null") === 0 ? null : $thumbnailWidth;
+            $thumbnailHeight = strcmp(strtolower("" . $thumbnailHeight), "null") === 0 ? null : $thumbnailHeight;
+
+            $cropping = 'c';
+            if ($thumbnailWidth === null || $thumbnailHeight === null) {
+                $cropping = null;
+            }
+
+            $parsedResponse["video_width"] = $thumbnailWidth;
+            $parsedResponse["video_height"] = $thumbnailHeight;
             
             
             $parsedResponse["icon_color"] = $configs->get('icon_color');
             $parsedResponse["overlay_color"] = $configs->get('overlay_color');
+            $parsedResponse["link_color"] = $configs->get('link_color');
             $parsedResponse["default_style"] = $configs->get('default_style');
 
             $showFollow = $configs->get('show_follow_on_instagram');
@@ -323,6 +332,13 @@ class Controller extends ExtensionController
                         ];
                     }
 
+                    
+                    if ($thumbnailWidth === null && $thumbnailHeight === null ) {
+                        $thumbnailPath = $mediaEntity->getFilepath();
+                    } else {
+                        $thumbnailPath = (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth, $thumbnailHeight, null, null, $cropping);
+                    }
+
                     $mediaContent = [
                         "media_type" => $mediaEntity->getMediaType(),
                         "filepath" => $mediaEntity->getFilepath(),
@@ -330,7 +346,7 @@ class Controller extends ExtensionController
                         "instagram_url" => $mediaEntity->getInstagramUrl(),
                         "instagram_username" => $mediaEntity->getInstagramUsername(),
                         "permalink" => $mediaEntity->getPermalink(),
-                        "thumbnail" => (new ThumbnailHelper($this->getBoltConfig()))->path(str_replace("files/", "", $mediaEntity->getFilepath()), $thumbnailWidth, $thumbnailHeight, null, null, 'c')
+                        "thumbnail" => $thumbnailPath
                     ];
                     array_push($media, $mediaContent);
                 }

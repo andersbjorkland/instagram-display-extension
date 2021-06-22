@@ -76,6 +76,20 @@ Using the Twig thumbnail function generates images under the directory public/th
  rm -rf public/thumbs/400×300×c/instagram/
 ```
 
+### Configuration
+The configuration file is found at ``config\extensions\andersbjorkland-instagramdisplayextension.yaml``. 
+
+* You can configure upload location, though default *files/instagram* is recommended to make the thumbnail-function work. 
+
+* Specify if you want the default style for the twig-partial (*_div.html.twig*) to be active.
+
+* Specify height and width for the media-files. This will crop the image to the specified dimensions. Setting either to null will keep the media file's original aspect ratio. Setting both to null will keep the image's original size.
+
+* Dictate what colors to use for the pagination button and links.
+
+* Determine if you want to show video media, and weather it should be stored on your server.
+
+
 ## Feedback is Welcome
 Please reach out to me at contact@andersbjorkland.online if you have suggestions for features or improvements. You may open issues and push requests for said issues as well.   
   
