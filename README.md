@@ -1,11 +1,13 @@
 # Instagram Display Extension
 
 Author: Anders Björkland
+Contact: contact@andersbjorkland.online
+Twitter: [@abjorkland](https://twitter.com/abjorkland)
 
 This Bolt extension can be used to display your Instagram posts on your website. 
-Add ``{% include "@instagram-display-extension/partials/_media.html.twig" %}`` to a template where you want to display it.
+Add ``{% include '@instagram-display-extension/_div.html.twig' %}`` to a template where you want to display it.
 
-Installation:
+## Installation:
 
 ```bash
 composer require andersbjorkland/instagram-display-extension
@@ -35,10 +37,10 @@ php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_to
   
 bolt_instagram_media:
 ```bash
-php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL)"
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)"
 ```
 
-*Removing*  
+### *Removing*  
 If you don't want to be using the Instagram Display Extension, you may want to remove the corresponding database tables.  
 bolt_instagram_token:  
 ```bash
@@ -48,6 +50,16 @@ php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_token'
 bolt_instagram_media:
 ```bash
 php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_media'
+```
+
+You may also want to remove any media files stored from Instagram. Clear these in public/files/instagram, the command for this is:  
+```bash
+ rm -rf public/files/instagram/
+```
+
+Using the Twig thumbnail function generates images under the directory public/thumbs. You'll find the Instagram media files under the thumbs-subdirectory corresponding to your chosen thumb-size. Using the default size will place the media-files at public/thumbs/400×300×c. Clear this directory with:  
+```bash
+ rm -rf public/thumbs/400×300×c/instagram/
 ```
 
 ## Running PHPStan and Easy Codings Standard

@@ -253,7 +253,9 @@ class Controller extends ExtensionController
                     }
 
                     if ($instagramMedia !== null) {
-                        array_push($mediaEntities, $instagramMedia);
+                        if (strcmp(strtolower($instagramMedia->getMediaType()), "video") !== 0 || $allowVideo) {
+                            array_push($mediaEntities, $instagramMedia);
+                        }
                     }
                 }
                 $entityManager->flush();
