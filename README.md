@@ -7,6 +7,20 @@ Twitter: [@abjorkland](https://twitter.com/abjorkland)
 This Bolt extension can be used to display your Instagram posts on your website. 
 Add ``{% include '@instagram-display-extension/_div.html.twig' %}`` to a template where you want to display it.
 
+An example usage with the *base-2021* theme:
+```twig
+<section class="border-b py-6">
+    <div class="container max-w-5xl mx-auto m-8">
+        <h2 class="w-full my-2 text-5xl font-bold leading-tight text-center text-white">Latest from Instagram</h1>
+        {% include '@instagram-display-extension/_div.html.twig' %}
+    </div>
+</section>
+```
+
+The resulting section would look like this:
+![Screenshot](assets/screenshot_splash.png)
+*In this example the results_per_page is set to 2.*
+
 ## Installation:
 
 ```bash
@@ -29,7 +43,7 @@ INSTAGRAM_APP_SECRET=your_app_secret
 This extension will look for these environment variables and use them when you authenticate your website with your Instagram account, 
 and on the api-calls to fetch media from your Instagram account.  
   
-If you need to add and table manually you can execute any of these commands:  
+If you need to add a table manually you can execute any of these commands:  
 bolt_instagram_token:
 ```bash
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)"
@@ -62,16 +76,7 @@ Using the Twig thumbnail function generates images under the directory public/th
  rm -rf public/thumbs/400×300×c/instagram/
 ```
 
-## Running PHPStan and Easy Codings Standard
-
-First, make sure dependencies are installed:
-
-```
-COMPOSER_MEMORY_LIMIT=-1 composer update
-```
-
-And then run ECS:
-
-```
-vendor/bin/ecs check src
-```
+## Feedback is Welcome
+Please reach out to me at contact@andersbjorkland.online if you have suggestions for features or improvements. You may open issues and push requests for said issues as well.   
+  
+If you want use this code in your own extension you are free to do so as it is licensed under the MIT-license. Remember to provide the same generous license for the parts that is based off of this though.
