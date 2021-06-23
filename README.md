@@ -11,7 +11,7 @@ An example usage with the *base-2021* theme:
 ```twig
 <section class="border-b py-6">
     <div class="container max-w-5xl mx-auto m-8">
-        <h2 class="w-full my-2 text-5xl font-bold leading-tight text-center text-white">Latest from Instagram</h1>
+        <h2 class="w-full my-2 text-5xl font-bold leading-tight text-center text-white">Latest from Instagram</h2>
         {% include '@instagram-display-extension/_div.html.twig' %}
     </div>
 </section>
