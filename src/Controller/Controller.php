@@ -112,6 +112,8 @@ class Controller extends ExtensionController
             }
         }
 
+        $instagramToken = null;
+
         if ($longlastingToken !== false && $tokenExpiration !== false) {
             $instagramToken = new InstagramToken();
             $repository = $this->getDoctrine()->getRepository(InstagramToken::class);
@@ -132,6 +134,8 @@ class Controller extends ExtensionController
             $entityManager->flush();
 
             $this->addFlash('notice', 'Successfully authorized your website to use your Instagram account.');
+        } else {
+            $this->addFlash('error', 'Something went wrong. Check that you have correct Instagram App ID and Secret entered as environment variables INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET.');
         }
 
         return $this->redirectToRoute('bolt_dashboard');

@@ -51,6 +51,9 @@ class ReferenceWidget extends BaseWidget implements TwigAwareInterface, CacheAwa
             $tokenEntity = $tokenEntities[0];
         }
         $this->instagramToken = $tokenEntity;
+
+        $databasePlatformName = $this->entityManager->getConnection()->getDatabasePlatform()->getName();
+        //dump($databasePlatformName);
     }
 
     public function getIsConnected(): bool

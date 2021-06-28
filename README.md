@@ -43,27 +43,58 @@ INSTAGRAM_APP_SECRET=your_app_secret
 This extension will look for these environment variables and use them when you authenticate your website with your Instagram account, 
 and on the api-calls to fetch media from your Instagram account.  
   
-If you need to add a table manually you can execute any of these commands:  
-bolt_instagram_token:
+If you need to add a table manually you can execute these commands:  
+
+* MySQL:
+```bash
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INT AUTO_INCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT AUTO_INCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption LONGTEXT DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+```
+
+* SQLite:
 ```bash
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)"
-```
-  
-bolt_instagram_media:
-```bash
+
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)"
 ```
 
-### *Removing*  
-If you don't want to be using the Instagram Display Extension, you may want to remove the corresponding database tables.  
-bolt_instagram_token:  
+* PostgreSQL:
 ```bash
-php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_token'
+
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption TEXT DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+
+php bin/console doctrine:query:sql "CREATE SEQUENCE IF NOT EXISTS instagram_token_id_seq INCREMENT BY 1 MINVALUE 1 START 1"
+
+php bin/console doctrine:query:sql "CREATE SEQUENCE IF NOT EXISTS instagram_media_id_seq INCREMENT BY 1 MINVALUE 1 START 1"
 ```
 
-bolt_instagram_media:
+
+
+### *Removing*  
+If you don't want to be using the Instagram Display Extension, you may want to remove the corresponding database tables.
+
+* MySQL
 ```bash
+php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_token'
 php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_media'
+```
+
+* SQLite
+```bash
+php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_token'
+php bin/console doctrine:query:sql 'DROP TABLE bolt_instagram_media'
+```
+
+* PostgreSQL
+```bash
+php bin/console doctrine:query:sql "DROP SEQUENCE instagram_token_id_seq CASCADE"
+php bin/console doctrine:query:sql "DROP SEQUENCE instagram_media_id_seq CASCADE"
+php bin/console doctrine:query:sql "DROP TABLE bolt_instagram_token"
+php bin/console doctrine:query:sql "DROP TABLE bolt_instagram_media"
+     
 ```
 
 You may also want to remove any media files stored from Instagram. Clear these in public/files/instagram, the command for this is:  
