@@ -32,8 +32,10 @@ When installing this extension, there will be two tables added to your database:
 * bolt_instagram_media - used for storing meta-information about Instagram images and video.
 
 When using this extension, you will be fetching media via [Instagram Basic Display](https://developers.facebook.com/docs/instagram-basic-display-api). 
-A Facebook developer account is required. You can then create an app with the Instagram Basic Display product. Once this is done, 
-you will find **Instagram App ID** and **Instagram App Secret**. Add these as environment variables on the form as:  
+A Facebook developer account is required. You can then create an app with the Instagram Basic Display product. 
+Use https://mydomain.com/extensions/instagram-display/ for "Valid OAuth Redirect URIs" field.
+Use https://mydomain.com/extensions/instagram-display/deauthorize for "Deauthorize Callback URL" field.
+Once this is done, you will find **Instagram App ID** and **Instagram App Secret**. Add these as environment variables on the form as:  
 
 ```bash
 INSTAGRAM_APP_ID=your_add_id
