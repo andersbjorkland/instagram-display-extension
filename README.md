@@ -51,7 +51,7 @@ If you need to add a table manually you can execute these commands:
 ```bash
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INT AUTO_INCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
 
-php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT AUTO_INCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption LONGTEXT DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT AUTO_INCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url TEXT DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
 ```
 
 * SQLite:
