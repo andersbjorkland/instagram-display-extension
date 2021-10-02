@@ -1,4 +1,5 @@
 # Instagram Display Extension
+![Showcase example of setting up and using the extension](assets/instagram-display.webp)
 
 Author: Anders Björkland
 Contact: contact@andersbjorkland.online
@@ -21,7 +22,6 @@ The resulting section would look like this:
 ![Screenshot](assets/screenshot_splash.png)
 *In this example the results_per_page is set to 2.*
 
-(assets/instagram-display.mp4)
 
 ## Installation:
 
