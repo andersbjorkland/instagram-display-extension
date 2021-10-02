@@ -21,6 +21,8 @@ The resulting section would look like this:
 ![Screenshot](assets/screenshot_splash.png)
 *In this example the results_per_page is set to 2.*
 
+assets/instagram-display.mp4
+
 ## Installation:
 
 ```bash
