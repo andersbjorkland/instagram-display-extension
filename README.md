@@ -60,7 +60,7 @@ php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_me
 ```bash
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in DATETIME DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL)"
 
-php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)"
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption CLOB DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, instagram_url CLOB NOT NULL, filepath VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL)"
 ```
 
 * PostgreSQL:
@@ -68,13 +68,13 @@ php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_me
 
 php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_token (id INT NOT NULL, token VARCHAR(255) DEFAULT NULL, expires_in TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, instagram_user_id VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
 
-php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption TEXT DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url VARCHAR(255) DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
+php bin/console doctrine:query:sql "CREATE TABLE IF NOT EXISTS bolt_instagram_media (id INT NOT NULL, instagram_id VARCHAR(255) NOT NULL, media_type VARCHAR(255) NOT NULL, caption TEXT DEFAULT NULL, timestamp VARCHAR(255) NOT NULL, filepath VARCHAR(255) DEFAULT NULL, instagram_url TEXT DEFAULT NULL, permalink VARCHAR(255) DEFAULT NULL, instagram_username VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))"
 
 php bin/console doctrine:query:sql "CREATE SEQUENCE IF NOT EXISTS instagram_token_id_seq INCREMENT BY 1 MINVALUE 1 START 1"
 
 php bin/console doctrine:query:sql "CREATE SEQUENCE IF NOT EXISTS instagram_media_id_seq INCREMENT BY 1 MINVALUE 1 START 1"
 ```
-
+>*A note on PostgreSQL:* If you haven't set up using it previously you may have to update `config/packages/doctrine.yaml` and change `doctrine:dbal:charset` to `utf8` if it was configured with `utf8mb` previously. Look into changing this if you see an exception with *`invalid value for parameter "client_encoding": "utf8mb4"`*.
 
 
 ### *Removing*  
