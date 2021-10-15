@@ -129,6 +129,13 @@ class Extension extends BaseExtension
     {
         $windows = strpos(PHP_OS, 'WIN') === 0;
         $test = $windows ? 'where' : 'command -v';
-        return is_executable(trim(shell_exec("$test $command")));
+        $result = shell_exec("$test $command");
+        $isExecutable = false;
+
+        if ($result) {
+            $isExecutable = is_executable(trim($result));
+        }
+
+        return $isExecutable;
     }
 }
